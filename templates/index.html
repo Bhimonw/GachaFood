@@ -19,6 +19,7 @@
             }
         }
     </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         .gradient-bg {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -44,19 +45,34 @@
 
     </style>
 </head>
-<body class="gradient-bg min-h-screen font-sans">
-    <div class="max-w-7xl mx-auto p-5">
-        <div class="bg-white rounded-2xl shadow-2xl overflow-hidden">
-            <!-- Header -->
-            <div class="gradient-header text-white p-8 text-center relative">
-                <div class="absolute top-5 right-8 flex gap-4">
-                    <a href="/restaurants" class="text-white no-underline px-4 py-2 rounded-lg bg-white bg-opacity-20 hover:bg-opacity-30 transition-all duration-300">Daftar Restoran</a>
-                    <a href="/recommendations" class="text-white no-underline px-4 py-2 rounded-lg bg-white bg-opacity-20 hover:bg-opacity-30 transition-all duration-300">Rekomendasi</a>
-                    <a href="/data-quality" class="text-white no-underline px-4 py-2 rounded-lg bg-white bg-opacity-20 hover:bg-opacity-30 transition-all duration-300">Kualitas Data</a>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="gradient-bg text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <a href="/" class="flex items-center text-white no-underline text-xl font-bold hover:text-gray-200 transition-colors">
+                    <i class="fas fa-utensils mr-2"></i>GachaFood
+                </a>
+                <div class="flex space-x-6">
+                    <a href="/" class="text-white font-semibold border-b-2 border-white pb-1">Beranda</a>
+                    <a href="/restaurants" class="text-white hover:text-gray-200 transition-colors no-underline">Daftar Restoran</a>
+                    <a href="/data-quality" class="text-white hover:text-gray-200 transition-colors no-underline">Kualitas Data</a>
                 </div>
-                <h1 class="text-4xl md:text-5xl font-bold mb-3">🍽️ GachaFood</h1>
-                <p class="text-lg opacity-90">Temukan tempat makan terbaik dengan clustering machine learning</p>
             </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">
+                <i class="fas fa-utensils mr-3 text-primary"></i>
+                GachaFood - Rekomendasi Tempat Makan
+            </h1>
+            <p class="text-gray-600">Temukan tempat makan terbaik dengan clustering machine learning</p>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
             
             <!-- Content -->
             <div class="p-8">
