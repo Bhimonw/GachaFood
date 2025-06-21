@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GachaFood - Rekomendasi Tempat Makan</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b, #ffa726);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .filters {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .filters h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 5px;
+        }
+
+        .filter-group input, .filter-group select {
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .filter-group input:focus, .filter-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-card h4 {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .stat-card .value {
+            font-size: 1.8em;
+            font-weight: bold;
+        }
+
+        .results {
+            margin-top: 30px;
+        }
+
+        .results h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .restaurant-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .restaurant-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            transition: all 0.3s;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .restaurant-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .restaurant-name {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .restaurant-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .info-item strong {
+            color: #333;
+            margin-right: 5px;
+        }
+
+        .cluster-badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .rating {
+            color: #ffa726;
+            font-weight: bold;
+        }
+
+        .price {
+            color: #4caf50;
+            font-weight: bold;
+        }
+
+        .distance {
+            color: #2196f3;
+            font-weight: bold;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+
+        @media (max-width: 768px) {
+            .filter-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .buttons {
+                justify-content: center;
+            }
+            
+            .restaurant-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍽️ GachaFood</h1>
+            <p>Temukan tempat makan terbaik dengan clustering machine learning</p>
+        </div>
+        
+        <div class="content">
+            <!-- Statistics Section -->
+            <div class="stats" id="stats">
+                <!-- Stats will be loaded here -->
+            </div>
+            
+            <!-- Filters Section -->
+            <div class="filters">
+                <h3>🔍 Filter Pencarian</h3>
+                <div class="filter-grid">
+                    <div class="filter-group">
+                        <label for="maxHarga">Harga Maksimal (Rp)</label>
+                        <input type="number" id="maxHarga" placeholder="Contoh: 25000">
+                    </div>
+                    <div class="filter-group">
+                        <label for="maxJarak">Jarak Maksimal (km)</label>
+                        <input type="number" id="maxJarak" step="0.1" placeholder="Contoh: 2.0">
+                    </div>
+                    <div class="filter-group">
+                        <label for="minRating">Rating Minimal</label>
+                        <input type="number" id="minRating" min="1" max="5" step="0.1" placeholder="Contoh: 4.0">
+                    </div>
+                    <div class="filter-group">
+                        <label for="tipeTempat">Tipe Tempat</label>
+                        <select id="tipeTempat">
+                            <option value="">Semua Tipe</option>
+                            <option value="Warung">Warung</option>
+                            <option value="Indoor">Indoor</option>
+                            <option value="Outdoor">Outdoor</option>
+                            <option value="Cafe">Cafe</option>
+                            <option value="Mix">Mix</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="clusterId">Cluster ID</label>
+                        <select id="clusterId">
+                            <option value="">Semua Cluster</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="limit">Jumlah Hasil</label>
+                        <input type="number" id="limit" value="10" min="1" max="50">
+                    </div>
+                </div>
+                
+                <div class="buttons">
+                    <button class="btn btn-primary" onclick="searchRecommendations()">🔍 Cari Rekomendasi</button>
+                    <button class="btn btn-secondary" onclick="clearFilters()">🗑️ Reset Filter</button>
+                    <button class="btn btn-secondary" onclick="loadClusters()">📊 Info Cluster</button>
+                </div>
+            </div>
+            
+            <!-- Results Section -->
+            <div class="results">
+                <h3 id="resultsTitle">📍 Rekomendasi Tempat Makan</h3>
+                <div id="resultsContainer">
+                    <div class="loading">Klik "Cari Rekomendasi" untuk melihat hasil</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load initial data
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStats();
+            loadClusterOptions();
+        });
+
+        // Load statistics
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/stats');
+                const data = await response.json();
+                
+                const statsContainer = document.getElementById('stats');
+                statsContainer.innerHTML = `
+                    <div class="stat-card">
+                        <h4>Total Restoran</h4>
+                        <div class="value">${data.total_restaurants}</div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Harga Rata-rata</h4>
+                        <div class="value">Rp ${Math.round(data.price_range.avg).toLocaleString()}</div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Rating Rata-rata</h4>
+                        <div class="value">${data.rating_range.avg.toFixed(1)}</div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Jarak Rata-rata</h4>
+                        <div class="value">${data.distance_range.avg.toFixed(1)} km</div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        // Load cluster options
+        async function loadClusterOptions() {
+            try {
+                const response = await fetch('/api/clusters');
+                const data = await response.json();
+                
+                const clusterSelect = document.getElementById('clusterId');
+                data.clusters.forEach(cluster => {
+                    const option = document.createElement('option');
+                    option.value = cluster.cluster_id;
+                    option.textContent = `Cluster ${cluster.cluster_id} (${cluster.count} tempat)`;
+                    clusterSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading clusters:', error);
+            }
+        }
+
+        // Search recommendations
+        async function searchRecommendations() {
+            const resultsContainer = document.getElementById('resultsContainer');
+            resultsContainer.innerHTML = '<div class="loading">Mencari rekomendasi...</div>';
+            
+            try {
+                const params = new URLSearchParams();
+                
+                const maxHarga = document.getElementById('maxHarga').value;
+                const maxJarak = document.getElementById('maxJarak').value;
+                const minRating = document.getElementById('minRating').value;
+                const tipeTempat = document.getElementById('tipeTempat').value;
+                const clusterId = document.getElementById('clusterId').value;
+                const limit = document.getElementById('limit').value;
+                
+                if (maxHarga) params.append('max_harga', maxHarga);
+                if (maxJarak) params.append('max_jarak', maxJarak);
+                if (minRating) params.append('min_rating', minRating);
+                if (tipeTempat) params.append('tipe_tempat', tipeTempat);
+                if (clusterId) params.append('cluster_id', clusterId);
+                if (limit) params.append('limit', limit);
+                
+                const response = await fetch(`/api/recommendations?${params}`);
+                const data = await response.json();
+                
+                displayResults(data.recommendations);
+                document.getElementById('resultsTitle').textContent = 
+                    `📍 Ditemukan ${data.total_found} Rekomendasi Tempat Makan`;
+                    
+            } catch (error) {
+                resultsContainer.innerHTML = '<div class="error">Terjadi kesalahan saat mencari rekomendasi</div>';
+                console.error('Error searching recommendations:', error);
+            }
+        }
+
+        // Display results
+        function displayResults(restaurants) {
+            const resultsContainer = document.getElementById('resultsContainer');
+            
+            if (restaurants.length === 0) {
+                resultsContainer.innerHTML = '<div class="loading">Tidak ada tempat makan yang sesuai dengan kriteria</div>';
+                return;
+            }
+            
+            const restaurantCards = restaurants.map(restaurant => `
+                <div class="restaurant-card">
+                    <div class="restaurant-name">${restaurant.nama_tempat}</div>
+                    <div class="restaurant-info">
+                        <div class="info-item">
+                            <strong>Tipe:</strong> ${restaurant.tipe_tempat}
+                        </div>
+                        <div class="info-item">
+                            <strong>Harga:</strong> <span class="price">Rp ${restaurant.harga.toLocaleString()}</span>
+                        </div>
+                        <div class="info-item">
+                            <strong>Rating:</strong> <span class="rating">${restaurant.rating}/5 ⭐</span>
+                        </div>
+                        <div class="info-item">
+                            <strong>Jarak:</strong> <span class="distance">${restaurant.jarak} km</span>
+                        </div>
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <span class="cluster-badge">Cluster ${restaurant.cluster}</span>
+                        ${restaurant.lokasi.startsWith('http') ? 
+                            `<a href="${restaurant.lokasi}" target="_blank" style="margin-left: 10px; color: #667eea; text-decoration: none;">📍 Lihat Lokasi</a>` : 
+                            `<span style="margin-left: 10px; color: #666; font-size: 0.9em;">📍 ${restaurant.lokasi}</span>`
+                        }
+                    </div>
+                </div>
+            `).join('');
+            
+            resultsContainer.innerHTML = `<div class="restaurant-grid">${restaurantCards}</div>`;
+        }
+
+        // Load clusters info
+        async function loadClusters() {
+            try {
+                const response = await fetch('/api/clusters');
+                const data = await response.json();
+                
+                const clusterCards = data.clusters.map(cluster => `
+                    <div class="restaurant-card">
+                        <div class="restaurant-name">Cluster ${cluster.cluster_id}</div>
+                        <div class="restaurant-info">
+                            <div class="info-item">
+                                <strong>Jumlah:</strong> ${cluster.count} tempat
+                            </div>
+                            <div class="info-item">
+                                <strong>Harga Rata-rata:</strong> <span class="price">Rp ${Math.round(cluster.avg_harga).toLocaleString()}</span>
+                            </div>
+                            <div class="info-item">
+                                <strong>Rating Rata-rata:</strong> <span class="rating">${cluster.avg_rating.toFixed(1)}/5</span>
+                            </div>
+                            <div class="info-item">
+                                <strong>Jarak Rata-rata:</strong> <span class="distance">${cluster.avg_jarak.toFixed(1)} km</span>
+                            </div>
+                        </div>
+                        <div style="margin-top: 10px;">
+                            <strong>Tipe Umum:</strong> ${cluster.tipe_tempat_common}
+                        </div>
+                    </div>
+                `).join('');
+                
+                document.getElementById('resultsContainer').innerHTML = 
+                    `<div class="restaurant-grid">${clusterCards}</div>`;
+                document.getElementById('resultsTitle').textContent = 
+                    `📊 Informasi Cluster (Silhouette Score: ${data.silhouette_score.toFixed(3)})`;
+                    
+            } catch (error) {
+                console.error('Error loading clusters:', error);
+            }
+        }
+
+        // Clear filters
+        function clearFilters() {
+            document.getElementById('maxHarga').value = '';
+            document.getElementById('maxJarak').value = '';
+            document.getElementById('minRating').value = '';
+            document.getElementById('tipeTempat').value = '';
+            document.getElementById('clusterId').value = '';
+            document.getElementById('limit').value = '10';
+            
+            document.getElementById('resultsContainer').innerHTML = 
+                '<div class="loading">Klik "Cari Rekomendasi" untuk melihat hasil</div>';
+            document.getElementById('resultsTitle').textContent = '📍 Rekomendasi Tempat Makan';
+        }
+    </script>
+</body>
+</html>
