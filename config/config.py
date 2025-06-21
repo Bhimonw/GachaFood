@@ -19,7 +19,9 @@ class Config:
     # ML Model settings
     MODEL_SAVE_PATH = os.environ.get('MODEL_SAVE_PATH') or 'models/saved_models'
     CLUSTERING_ALGORITHM = 'kmeans'
-    DEFAULT_N_CLUSTERS = 5
+    DEFAULT_N_CLUSTERS = 3  # Force 3 clusters to merge sedang and menengah
+    AUTO_OPTIMIZE_CLUSTERS = False  # Disable auto-optimization
+    MAX_CLUSTERS = 3
     RANDOM_STATE = 42
     
     # API settings
@@ -45,8 +47,14 @@ class Config:
         'price': 0.25
     }
     
-    # Clustering features
+    # Clustering features and weights
     CLUSTERING_FEATURES = ['harga', 'rating', 'jarak', 'tipe_encoded']
+    FEATURE_WEIGHTS = {
+        'harga': 0.5,      # Increase price weight for better separation
+        'rating': 0.3,     # Increase rating weight
+        'jarak': 0.15,     # Reduce distance weight
+        'tipe_encoded': 0.05 # Reduce place type weight
+    }
     
     # Data validation rules
     DATA_VALIDATION = {
@@ -196,8 +204,13 @@ class AppSettings:
         return {
             'algorithm': self.config.CLUSTERING_ALGORITHM,
             'n_clusters': self.config.DEFAULT_N_CLUSTERS,
+            'auto_optimize': getattr(self.config, 'AUTO_OPTIMIZE_CLUSTERS', True),
+            'max_clusters': getattr(self.config, 'MAX_CLUSTERS', 8),
             'random_state': self.config.RANDOM_STATE,
-            'features': self.config.CLUSTERING_FEATURES
+            'features': self.config.CLUSTERING_FEATURES,
+            'feature_weights': getattr(self.config, 'FEATURE_WEIGHTS', {
+                'harga': 0.4, 'rating': 0.25, 'jarak': 0.25, 'tipe_encoded': 0.1
+            })
         }
     
     def get_api_config(self) -> Dict[str, Any]:

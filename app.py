@@ -1,5 +1,5 @@
 from flask import Flask
-from config import get_config, AppSettings
+from config import AppSettings, get_config
 from models import RestaurantClusteringModel, RestaurantDataLoader, RestaurantRecommendationEngine
 from routes.api_routes import api_bp, init_api_dependencies
 from routes.web_routes import web_bp, init_web_dependencies
@@ -26,9 +26,19 @@ def create_app(config_name=None):
         logger.error(f"Data file not found: {settings.get_data_file_path()}")
         raise FileNotFoundError(f"Data file not found: {settings.get_data_file_path()}")
     
-    # Initialize components
+    # Initialize models with improved configuration
+    settings = AppSettings(config_obj)
+    clustering_config = settings.get_clustering_config()
+    
     data_loader = RestaurantDataLoader(settings.get_data_file_path())
-    clustering_model = RestaurantClusteringModel()
+    clustering_model = RestaurantClusteringModel(
+        n_clusters=clustering_config['n_clusters'],
+        auto_optimize=clustering_config['auto_optimize'],
+        random_state=clustering_config['random_state']
+    )
+    # Set feature weights from config
+    clustering_model.feature_weights = clustering_config['feature_weights']
+    
     recommendation_engine = RestaurantRecommendationEngine()
     
     # Load and process data
@@ -38,11 +48,31 @@ def create_app(config_name=None):
         processed_data = data_loader.clean_data(raw_data)
         
         logger.info("Performing clustering...")
+        # Fit clustering model
         clustering_model.fit(processed_data)
         
-        # Add cluster labels to data
-        clustered_data = processed_data.copy()
-        clustered_data['cluster'] = clustering_model.predict(processed_data)
+        # Get predictions for the same processed data used in training
+        # We need to use the original processed_data and get predictions for it
+        # But predict() will preprocess again, so we need to handle this differently
+        
+        # Get cluster predictions directly from the fitted model
+        # First, preprocess the data the same way as in predict method
+        prediction_data = clustering_model.preprocess_data(processed_data)
+        X = prediction_data[clustering_model.feature_columns]
+        
+        # Apply feature weights
+        X_weighted = X.copy()
+        for col in clustering_model.feature_columns:
+            if col in clustering_model.feature_weights:
+                X_weighted[col] = X_weighted[col] * clustering_model.feature_weights[col]
+        
+        # Scale and predict
+        X_scaled = clustering_model.scaler.transform(X_weighted)
+        cluster_predictions = clustering_model.kmeans.predict(X_scaled)
+        
+        # Use the prediction_data (which has the same length as predictions)
+        clustered_data = prediction_data.copy()
+        clustered_data['cluster'] = cluster_predictions
         
         # Add cluster names based on price categories
         cluster_means = []
@@ -54,9 +84,20 @@ def create_app(config_name=None):
         # Sort by price (ekonomis = lowest price, premium = highest price)
         cluster_means.sort(key=lambda x: x[1])
         
-        # Map cluster_id to labels based on price order
+        # Map cluster_id to labels based on price order (dynamic labeling)
         cluster_mapping = {}
-        labels = ['Ekonomis', 'Sedang', 'Premium']
+        n_clusters = clustering_model.n_clusters
+        if n_clusters == 2:
+            labels = ['Ekonomis', 'Premium']
+        elif n_clusters == 3:
+            labels = ['Ekonomis', 'Menengah', 'Premium']  # Gabung sedang dan menengah
+        elif n_clusters == 4:
+            labels = ['Ekonomis', 'Menengah', 'Tinggi', 'Premium']
+        elif n_clusters == 5:
+            labels = ['Ekonomis', 'Menengah', 'Tinggi', 'Mewah', 'Premium']
+        else:
+            labels = [f'Kategori {i+1}' for i in range(n_clusters)]
+        
         for i, (cluster_id, _) in enumerate(cluster_means):
             cluster_mapping[cluster_id] = labels[i] if i < len(labels) else f'Cluster {i}'
         
