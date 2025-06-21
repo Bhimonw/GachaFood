@@ -44,6 +44,25 @@ def create_app(config_name=None):
         clustered_data = processed_data.copy()
         clustered_data['cluster'] = clustering_model.predict(processed_data)
         
+        # Add cluster names based on price categories
+        cluster_means = []
+        for cluster_id in range(clustering_model.n_clusters):
+            cluster_data = clustered_data[clustered_data['cluster'] == cluster_id]
+            if len(cluster_data) > 0:
+                cluster_means.append((cluster_id, cluster_data['harga'].mean()))
+        
+        # Sort by price (ekonomis = lowest price, premium = highest price)
+        cluster_means.sort(key=lambda x: x[1])
+        
+        # Map cluster_id to labels based on price order
+        cluster_mapping = {}
+        labels = ['Ekonomis', 'Sedang', 'Premium']
+        for i, (cluster_id, _) in enumerate(cluster_means):
+            cluster_mapping[cluster_id] = labels[i] if i < len(labels) else f'Cluster {i}'
+        
+        # Add cluster_name column
+        clustered_data['cluster_name'] = clustered_data['cluster'].map(cluster_mapping)
+        
         logger.info("Initializing recommendation engine...")
         recommendation_engine.load_data(clustered_data)
         

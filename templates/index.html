@@ -93,9 +93,17 @@
                             </select>
                         </div>
                         <div class="flex flex-col">
-                            <label for="clusterId" class="font-semibold text-gray-600 mb-2">Cluster ID</label>
+                            <label for="clusterId" class="font-semibold text-gray-600 mb-2">Kategori Harga</label>
                             <select id="clusterId" class="p-3 border-2 border-gray-200 rounded-lg text-sm focus:outline-none focus:border-primary transition-colors">
-                                <option value="">Semua Cluster</option>
+                                <option value="">Semua Kategori</option>
+                                <option value="ekonomis">💰 Ekonomis (Harga Terjangkau)</option>
+                                <option value="sedang">🏪 Sedang (Harga Menengah)</option>
+                                <option value="premium">⭐ Premium (Harga Tinggi)</option>
+                                <option value="ekonomis-sedang">💰🏪 Ekonomis & Sedang</option>
+                                <option value="sedang-premium">🏪⭐ Sedang & Premium</option>
+                                <option value="budget-friendly">💸 Hemat (< Rp 15.000)</option>
+                                <option value="mid-range">💵 Menengah (Rp 15.000 - 30.000)</option>
+                                <option value="expensive">💎 Mahal (> Rp 30.000)</option>
                             </select>
                         </div>
                         <div class="flex flex-col">
@@ -166,15 +174,27 @@
                 const data = await response.json();
                 
                 const clusterSelect = document.getElementById('clusterId');
-                // data is already an array of clusters
-                data.forEach(cluster => {
-                    const option = document.createElement('option');
-                    option.value = cluster.cluster_id;
-                    option.textContent = `Cluster ${cluster.cluster_id} (${cluster.count} tempat)`;
-                    clusterSelect.appendChild(option);
-                });
+                // Add dynamic cluster options based on actual data
+                if (data.clusters && data.clusters.length > 0) {
+                    data.clusters.forEach(cluster => {
+                        const option = document.createElement('option');
+                        option.value = cluster.cluster_name.toLowerCase();
+                        option.textContent = `${getClusterIcon(cluster.cluster_name)} ${cluster.cluster_name} (${cluster.count} tempat - Rp ${Math.round(cluster.avg_harga).toLocaleString()})`;
+                        clusterSelect.appendChild(option);
+                    });
+                }
             } catch (error) {
                 console.error('Error loading clusters:', error);
+            }
+        }
+        
+        // Helper function for cluster icons
+        function getClusterIcon(name) {
+            switch(name) {
+                case 'Ekonomis': return '💰';
+                case 'Sedang': return '🏪';
+                case 'Premium': return '⭐';
+                default: return '📍';
             }
         }
 
@@ -197,7 +217,34 @@
                 if (maxJarak) params.append('max_jarak', maxJarak);
                 if (minRating) params.append('min_rating', minRating);
                 if (tipeTempat) params.append('tipe_tempat', tipeTempat);
-                if (clusterId) params.append('cluster_id', clusterId);
+                if (clusterId) {
+                    // Handle special category filters
+                    switch(clusterId) {
+                        case 'ekonomis':
+                        case 'sedang':
+                        case 'premium':
+                            params.append('cluster_name', clusterId);
+                            break;
+                        case 'ekonomis-sedang':
+                            params.append('cluster_names', 'ekonomis,sedang');
+                            break;
+                        case 'sedang-premium':
+                            params.append('cluster_names', 'sedang,premium');
+                            break;
+                        case 'budget-friendly':
+                            params.append('max_harga', '15000');
+                            break;
+                        case 'mid-range':
+                            params.append('min_harga', '15000');
+                            params.append('max_harga', '30000');
+                            break;
+                        case 'expensive':
+                            params.append('min_harga', '30000');
+                            break;
+                        default:
+                            params.append('cluster_id', clusterId);
+                    }
+                }
                 if (limit) params.append('limit', limit);
                 
                 const response = await fetch(`/api/recommendations?${params}`);
@@ -258,33 +305,102 @@
                 const response = await fetch('/api/clusters');
                 const data = await response.json();
                 
+                const getClusterColor = (name) => {
+                    switch(name) {
+                        case 'Ekonomis': return 'bg-green-50 border-green-200';
+                        case 'Sedang': return 'bg-blue-50 border-blue-200';
+                        case 'Premium': return 'bg-purple-50 border-purple-200';
+                        default: return 'bg-gray-50 border-gray-200';
+                    }
+                };
+                
+                const getClusterIcon = (name) => {
+                    switch(name) {
+                        case 'Ekonomis': return '💰';
+                        case 'Sedang': return '🏪';
+                        case 'Premium': return '⭐';
+                        default: return '📍';
+                    }
+                };
+                
                 const clusterCards = data.clusters.map(cluster => `
-                    <div class="bg-white border border-gray-200 rounded-xl p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
-                        <div class="text-xl font-bold text-gray-800 mb-3">Cluster ${cluster.cluster_id}</div>
-                        <div class="grid grid-cols-2 gap-3 mb-4">
-                            <div class="flex items-center text-sm text-gray-600">
-                                <strong class="text-gray-800 mr-2">Jumlah:</strong> ${cluster.count} tempat
-                            </div>
-                            <div class="flex items-center text-sm text-gray-600">
-                                <strong class="text-gray-800 mr-2">Harga Rata-rata:</strong> <span class="text-green-600 font-bold">Rp ${Math.round(cluster.avg_harga).toLocaleString()}</span>
-                            </div>
-                            <div class="flex items-center text-sm text-gray-600">
-                                <strong class="text-gray-800 mr-2">Rating Rata-rata:</strong> <span class="text-orange-500 font-bold">${cluster.avg_rating.toFixed(1)}/5</span>
-                            </div>
-                            <div class="flex items-center text-sm text-gray-600">
-                                <strong class="text-gray-800 mr-2">Jarak Rata-rata:</strong> <span class="text-blue-500 font-bold">${cluster.avg_jarak.toFixed(1)} km</span>
+                    <div class="${getClusterColor(cluster.cluster_name)} rounded-xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+                        <div class="flex items-center mb-4">
+                            <span class="text-2xl mr-3">${getClusterIcon(cluster.cluster_name)}</span>
+                            <div>
+                                <div class="text-xl font-bold text-gray-800">${cluster.cluster_name}</div>
+                                <div class="text-sm text-gray-500">${cluster.count} tempat makan</div>
                             </div>
                         </div>
-                        <div class="mt-3">
-                            <strong class="text-gray-800">Tipe Umum:</strong> <span class="text-gray-600">${cluster.tipe_tempat_common}</span>
+                        
+                        <div class="grid grid-cols-1 gap-3 mb-4">
+                            <div class="bg-white rounded-lg p-3">
+                                <div class="text-xs text-gray-500 mb-1">Rentang Harga</div>
+                                <div class="font-semibold text-green-600">
+                                    Rp ${Math.round(cluster.min_harga).toLocaleString()} - Rp ${Math.round(cluster.max_harga).toLocaleString()}
+                                </div>
+                                <div class="text-xs text-gray-500">Rata-rata: Rp ${Math.round(cluster.avg_harga).toLocaleString()}</div>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="bg-white rounded-lg p-3">
+                                    <div class="text-xs text-gray-500 mb-1">Rating</div>
+                                    <div class="font-semibold text-orange-500">${cluster.avg_rating.toFixed(1)}/5 ⭐</div>
+                                    <div class="text-xs text-gray-500">${cluster.min_rating.toFixed(1)} - ${cluster.max_rating.toFixed(1)}</div>
+                                </div>
+                                
+                                <div class="bg-white rounded-lg p-3">
+                                    <div class="text-xs text-gray-500 mb-1">Jarak Rata-rata</div>
+                                    <div class="font-semibold text-blue-500">${cluster.avg_jarak.toFixed(1)} km</div>
+                                    <div class="text-xs text-gray-500">📍 Lokasi</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white rounded-lg p-3">
+                            <div class="text-xs text-gray-500 mb-1">Tipe Tempat Dominan</div>
+                            <div class="font-semibold text-gray-700">${cluster.tipe_tempat_common}</div>
                         </div>
                     </div>
                 `).join('');
                 
-                document.getElementById('resultsContainer').innerHTML = 
-                    `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">${clusterCards}</div>`;
-                document.getElementById('resultsTitle').textContent = 
-                    `📊 Informasi Cluster (Silhouette Score: ${data.silhouette_score.toFixed(3)})`;
+                const clusteringInfo = `
+                    <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 mb-6 border border-blue-200">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 class="text-lg font-bold text-gray-800">📊 Analisis Clustering Tempat Makan</h3>
+                                <p class="text-sm text-gray-600">${data.clustering_method}</p>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-2xl font-bold text-blue-600">${data.total_restaurants}</div>
+                                <div class="text-xs text-gray-500">Total Restoran</div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="bg-white rounded-lg p-3 text-center">
+                                <div class="text-lg font-bold text-green-600">💰 Ekonomis</div>
+                                <div class="text-xs text-gray-500">Harga terjangkau</div>
+                            </div>
+                            <div class="bg-white rounded-lg p-3 text-center">
+                                <div class="text-lg font-bold text-blue-600">🏪 Sedang</div>
+                                <div class="text-xs text-gray-500">Harga menengah</div>
+                            </div>
+                            <div class="bg-white rounded-lg p-3 text-center">
+                                <div class="text-lg font-bold text-purple-600">⭐ Premium</div>
+                                <div class="text-xs text-gray-500">Harga tinggi</div>
+                            </div>
+                        </div>
+                        <div class="mt-4 text-center">
+                            <span class="text-sm text-gray-600">Silhouette Score: </span>
+                            <span class="font-bold text-blue-600">${data.silhouette_score.toFixed(3)}</span>
+                            <span class="text-xs text-gray-500 ml-2">(Kualitas clustering: ${data.silhouette_score > 0.5 ? 'Baik' : data.silhouette_score > 0.3 ? 'Cukup' : 'Perlu Perbaikan'})</span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">${clusterCards}</div>
+                `;
+                
+                document.getElementById('resultsContainer').innerHTML = clusteringInfo;
+                 document.getElementById('resultsTitle').textContent = '📊 Informasi Cluster Tempat Makan';
                     
             } catch (error) {
                 console.error('Error loading clusters:', error);

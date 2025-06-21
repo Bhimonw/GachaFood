@@ -10,7 +10,7 @@ import os
 class RestaurantClusteringModel:
     """Model untuk clustering tempat makan menggunakan K-Means"""
     
-    def __init__(self, n_clusters: int = 5, random_state: int = 42):
+    def __init__(self, n_clusters: int = 3, random_state: int = 42):
         self.n_clusters = n_clusters
         self.random_state = random_state
         self.kmeans = None
@@ -18,6 +18,7 @@ class RestaurantClusteringModel:
         self.label_encoder = None
         self.feature_columns = ['harga', 'rating', 'jarak', 'tipe_encoded']
         self.is_fitted = False
+        self.cluster_labels = {0: 'Ekonomis', 1: 'Sedang', 2: 'Premium'}
         
     def preprocess_data(self, df: pd.DataFrame) -> pd.DataFrame:
         """Preprocessing data untuk clustering"""
@@ -64,6 +65,7 @@ class RestaurantClusteringModel:
         
         # Calculate silhouette score
         silhouette_avg = silhouette_score(X_scaled, cluster_labels)
+        self._last_silhouette_score = silhouette_avg
         
         self.is_fitted = True
         
@@ -95,12 +97,29 @@ class RestaurantClusteringModel:
         """Mendapatkan informasi detail setiap cluster"""
         cluster_info = []
         
+        # Urutkan cluster berdasarkan harga rata-rata untuk labeling yang konsisten
+        cluster_means = []
+        for cluster_id in range(self.n_clusters):
+            cluster_data = df_with_clusters[df_with_clusters['cluster'] == cluster_id]
+            if len(cluster_data) > 0:
+                cluster_means.append((cluster_id, cluster_data['harga'].mean()))
+        
+        # Urutkan berdasarkan harga (ekonomis = harga terendah, premium = harga tertinggi)
+        cluster_means.sort(key=lambda x: x[1])
+        
+        # Mapping cluster_id ke label berdasarkan urutan harga
+        cluster_mapping = {}
+        labels = ['Ekonomis', 'Sedang', 'Premium']
+        for i, (cluster_id, _) in enumerate(cluster_means):
+            cluster_mapping[cluster_id] = labels[i] if i < len(labels) else f'Cluster {i}'
+        
         for cluster_id in range(self.n_clusters):
             cluster_data = df_with_clusters[df_with_clusters['cluster'] == cluster_id]
             
             if len(cluster_data) > 0:
                 cluster_info.append({
                     'cluster_id': int(cluster_id),
+                    'cluster_name': cluster_mapping.get(cluster_id, f'Cluster {cluster_id}'),
                     'count': len(cluster_data),
                     'avg_harga': float(cluster_data['harga'].mean()),
                     'avg_rating': float(cluster_data['rating'].mean()),
@@ -108,10 +127,22 @@ class RestaurantClusteringModel:
                     'tipe_tempat_common': cluster_data['tipe_tempat'].mode().iloc[0] if not cluster_data['tipe_tempat'].mode().empty else 'Mixed',
                     'std_harga': float(cluster_data['harga'].std()),
                     'std_rating': float(cluster_data['rating'].std()),
-                    'std_jarak': float(cluster_data['jarak'].std())
+                    'std_jarak': float(cluster_data['jarak'].std()),
+                    'min_harga': float(cluster_data['harga'].min()),
+                    'max_harga': float(cluster_data['harga'].max()),
+                    'min_rating': float(cluster_data['rating'].min()),
+                    'max_rating': float(cluster_data['rating'].max())
                 })
         
-        return cluster_info
+        # Urutkan hasil berdasarkan harga rata-rata
+        cluster_info.sort(key=lambda x: x['avg_harga'])
+        
+        return {
+            'clusters': cluster_info,
+            'silhouette_score': getattr(self, '_last_silhouette_score', 0.0),
+            'total_restaurants': len(df_with_clusters),
+            'clustering_method': 'K-Means dengan 3 kategori: Ekonomis, Sedang, Premium'
+        }
     
     def save_model(self, filepath: str) -> None:
         """Simpan model ke file"""

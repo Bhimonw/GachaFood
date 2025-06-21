@@ -84,10 +84,13 @@ def get_recommendations():
         
         # Parse query parameters
         max_harga = request.args.get('max_harga', type=int)
+        min_harga = request.args.get('min_harga', type=int)
         max_jarak = request.args.get('max_jarak', type=float)
         min_rating = request.args.get('min_rating', type=float)
         tipe_tempat = request.args.get('tipe_tempat')
         cluster_id = request.args.get('cluster_id', type=int)
+        cluster_name = request.args.get('cluster_name')
+        cluster_names = request.args.get('cluster_names')
         limit = request.args.get('limit', default=10, type=int)
         sort_by = request.args.get('sort_by', default='rating')
         recommendation_type = request.args.get('type', default='filtered')
@@ -114,10 +117,13 @@ def get_recommendations():
             # Default filtered recommendations
             recommendations = recommendation_engine.get_recommendations_by_filters(
                 max_harga=max_harga,
+                min_harga=min_harga,
                 max_jarak=max_jarak,
                 min_rating=min_rating,
                 tipe_tempat=tipe_tempat,
                 cluster_id=cluster_id,
+                cluster_name=cluster_name,
+                cluster_names=cluster_names,
                 limit=limit,
                 sort_by=sort_by
             )
@@ -125,12 +131,16 @@ def get_recommendations():
         return jsonify({
             'recommendations': recommendations,
             'count': len(recommendations),
+            'total_found': len(recommendations),
             'filters_applied': {
                 'max_harga': max_harga,
+                'min_harga': min_harga,
                 'max_jarak': max_jarak,
                 'min_rating': min_rating,
                 'tipe_tempat': tipe_tempat,
                 'cluster_id': cluster_id,
+                'cluster_name': cluster_name,
+                'cluster_names': cluster_names,
                 'sort_by': sort_by,
                 'type': recommendation_type
             }

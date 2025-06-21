@@ -36,10 +36,13 @@ class RestaurantRecommendationEngine:
     def get_recommendations_by_filters(
         self, 
         max_harga: Optional[int] = None,
+        min_harga: Optional[int] = None,
         max_jarak: Optional[float] = None,
         min_rating: Optional[float] = None,
         tipe_tempat: Optional[str] = None,
         cluster_id: Optional[int] = None,
+        cluster_name: Optional[str] = None,
+        cluster_names: Optional[str] = None,
         limit: int = 10,
         sort_by: str = 'rating'
     ) -> List[Dict[str, Any]]:
@@ -52,6 +55,9 @@ class RestaurantRecommendationEngine:
         # Apply filters
         if max_harga is not None:
             filtered_df = filtered_df[filtered_df['harga'] <= max_harga]
+        
+        if min_harga is not None:
+            filtered_df = filtered_df[filtered_df['harga'] >= min_harga]
         
         if max_jarak is not None:
             filtered_df = filtered_df[filtered_df['jarak'] <= max_jarak]
@@ -66,6 +72,21 @@ class RestaurantRecommendationEngine:
         
         if cluster_id is not None:
             filtered_df = filtered_df[filtered_df['cluster'] == cluster_id]
+        
+        # Handle cluster name filtering
+        if cluster_name:
+            if 'cluster_name' in filtered_df.columns:
+                filtered_df = filtered_df[
+                    filtered_df['cluster_name'].str.lower() == cluster_name.lower()
+                ]
+        
+        # Handle multiple cluster names filtering
+        if cluster_names:
+            cluster_list = [name.strip().lower() for name in cluster_names.split(',')]
+            if 'cluster_name' in filtered_df.columns:
+                filtered_df = filtered_df[
+                    filtered_df['cluster_name'].str.lower().isin(cluster_list)
+                ]
         
         # Sort results
         if sort_by == 'rating':
