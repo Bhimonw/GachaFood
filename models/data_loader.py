@@ -3,6 +3,7 @@ import numpy as np
 from typing import Optional, Dict, Any, List
 import os
 from pathlib import Path
+from utils.duplicate_detector import DuplicateDetector
 
 class RestaurantDataLoader:
     """Class untuk loading dan preprocessing data tempat makan"""
@@ -148,17 +149,94 @@ class RestaurantDataLoader:
                 old_val, new_val, case=False, regex=False
             )
         
-        # Remove duplicates based on nama_tempat and lokasi
-        cleaned_df = cleaned_df.drop_duplicates(subset=['nama_tempat', 'lokasi'], keep='first')
+        # Advanced duplicate removal using DuplicateDetector
+        duplicate_detector = DuplicateDetector(similarity_threshold=0.85)
+        
+        # Remove duplicates with advanced similarity matching
+        cleaned_df = duplicate_detector.remove_duplicates_advanced(
+            cleaned_df, 
+            name_col='nama_tempat', 
+            location_col='lokasi',
+            rating_col='rating'
+        )
         
         final_rows = len(cleaned_df)
         removed_rows = initial_rows - final_rows
         
-        if removed_rows > 0:
-            print(f"Removed {removed_rows} rows during cleaning process")
-        
         self.processed_data = cleaned_df
         return cleaned_df
+    
+    def get_duplicate_report(self, df: pd.DataFrame) -> Dict[str, Any]:
+        """Mendapatkan laporan detail tentang duplikat dalam data"""
+        duplicate_detector = DuplicateDetector(similarity_threshold=0.85)
+        report = duplicate_detector.get_duplicate_report(
+            df, 
+            name_col='nama_tempat', 
+            location_col='lokasi'
+        )
+        return report
+    
+    def validate_data_quality(self, df: pd.DataFrame) -> Dict[str, Any]:
+        """Validasi kualitas data yang komprehensif"""
+        quality_report = {
+            'data_quality_score': 0.0,
+            'issues': [],
+            'recommendations': [],
+            'statistics': {}
+        }
+        
+        total_rows = len(df)
+        if total_rows == 0:
+            quality_report['issues'].append('Dataset kosong')
+            return quality_report
+        
+        # Check for missing values
+        missing_counts = df.isnull().sum()
+        missing_percentage = (missing_counts / total_rows * 100).round(2)
+        
+        for col, missing_pct in missing_percentage.items():
+            if missing_pct > 10:
+                quality_report['issues'].append(f'Kolom {col} memiliki {missing_pct}% data yang hilang')
+                quality_report['recommendations'].append(f'Pertimbangkan untuk mengisi atau menghapus data yang hilang di kolom {col}')
+        
+        # Check for potential duplicates
+        duplicate_report = self.get_duplicate_report(df)
+        if duplicate_report['total_potential_duplicates'] > 0:
+            quality_report['issues'].append(f'Ditemukan {duplicate_report["total_potential_duplicates"]} pasangan data yang berpotensi duplikat')
+            quality_report['recommendations'].append('Gunakan fungsi pembersihan data untuk menghapus duplikat')
+        
+        # Check data ranges
+        if 'harga' in df.columns:
+            harga_stats = df['harga'].describe()
+            if harga_stats['min'] <= 0:
+                quality_report['issues'].append('Ditemukan harga yang tidak valid (≤ 0)')
+            if harga_stats['max'] > 1000000:  # 1 juta
+                quality_report['issues'].append('Ditemukan harga yang sangat tinggi (> 1 juta)')
+        
+        if 'rating' in df.columns:
+            rating_out_of_range = ((df['rating'] < 1) | (df['rating'] > 5)).sum()
+            if rating_out_of_range > 0:
+                quality_report['issues'].append(f'{rating_out_of_range} rating di luar rentang 1-5')
+        
+        if 'jarak' in df.columns:
+            jarak_negative = (df['jarak'] < 0).sum()
+            if jarak_negative > 0:
+                quality_report['issues'].append(f'{jarak_negative} jarak bernilai negatif')
+        
+        # Calculate quality score
+        total_issues = len(quality_report['issues'])
+        quality_score = max(0, 100 - (total_issues * 10))  # Deduct 10 points per issue
+        quality_report['data_quality_score'] = quality_score
+        
+        # Add statistics
+        quality_report['statistics'] = {
+            'total_rows': total_rows,
+            'total_columns': len(df.columns),
+            'missing_data_percentage': missing_percentage.to_dict(),
+            'potential_duplicates': duplicate_report['total_potential_duplicates']
+        }
+        
+        return quality_report
     
     def get_data_summary(self, df: pd.DataFrame) -> Dict[str, Any]:
         """Mendapatkan ringkasan statistik data"""

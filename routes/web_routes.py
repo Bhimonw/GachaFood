@@ -41,6 +41,11 @@ def index():
         flash('Terjadi kesalahan saat memuat halaman utama', 'error')
         return render_template('index.html', stats=None, clusters=None)
 
+@web_bp.route('/data-quality')
+def data_quality():
+    """Halaman laporan kualitas data"""
+    return render_template('data_quality.html')
+
 @web_bp.route('/restaurants')
 def restaurants():
     """Halaman daftar restoran dengan pagination"""

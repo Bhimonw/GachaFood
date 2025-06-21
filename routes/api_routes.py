@@ -290,29 +290,64 @@ def get_cluster_stats(cluster_id: int):
 
 @api_bp.route('/health', methods=['GET'])
 def health_check():
-    """Endpoint untuk health check"""
+    """Health check endpoint"""
+    return jsonify({
+        'status': 'healthy',
+        'timestamp': datetime.now().isoformat(),
+        'version': '1.0.0'
+    })
+
+@api_bp.route('/data/quality-report', methods=['GET'])
+def get_data_quality_report():
+    """Get comprehensive data quality report"""
     try:
-        status = {
-            'status': 'healthy',
-            'services': {
-                'data_loader': data_loader is not None,
-                'clustering_model': clustering_model is not None,
-                'recommendation_engine': recommendation_engine is not None
-            }
-        }
+        # Get current processed data
+        from flask import current_app
+        data_loader = current_app.config.get('DATA_LOADER')
+        processed_data = current_app.config.get('PROCESSED_DATA')
         
-        if data_loader is not None:
-            data = data_loader.get_filtered_data()
-            status['data_info'] = {
-                'total_restaurants': len(data),
-                'clusters_available': len(data['cluster'].unique()) if 'cluster' in data.columns else 0
-            }
+        if data_loader is None or processed_data is None:
+            return jsonify({'error': 'Data not available'}), 500
         
-        return jsonify(status)
+        # Generate quality report
+        quality_report = data_loader.validate_data_quality(processed_data)
+        
+        return jsonify({
+            'success': True,
+            'data': quality_report
+        })
     
     except Exception as e:
-        logger.error(f"Error in health_check: {str(e)}")
-        return jsonify({'status': 'unhealthy', 'error': str(e)}), 500
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@api_bp.route('/data/duplicate-report', methods=['GET'])
+def get_duplicate_report():
+    """Get detailed duplicate detection report"""
+    try:
+        # Get current processed data
+        from flask import current_app
+        data_loader = current_app.config.get('DATA_LOADER')
+        processed_data = current_app.config.get('PROCESSED_DATA')
+        
+        if data_loader is None or processed_data is None:
+            return jsonify({'error': 'Data not available'}), 500
+        
+        # Generate duplicate report
+        duplicate_report = data_loader.get_duplicate_report(processed_data)
+        
+        return jsonify({
+            'success': True,
+            'data': duplicate_report
+        })
+    
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 # Error handlers
 @api_bp.errorhandler(404)

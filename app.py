@@ -57,8 +57,9 @@ def create_app(config_name=None):
     init_api_dependencies(clustering_model, data_loader, recommendation_engine)
     init_web_dependencies(data_loader, clustering_model, recommendation_engine)
     
-    # Store processed data for routes
-    app.config['PROCESSED_DATA'] = clustered_data
+    # Store components in app config for access by blueprints
+    app.config['CLUSTERED_DATA'] = clustered_data
+    app.config['PROCESSED_DATA'] = processed_data
     app.config['DATA_LOADER'] = data_loader
     app.config['CLUSTERING_MODEL'] = clustering_model
     app.config['RECOMMENDATION_ENGINE'] = recommendation_engine
