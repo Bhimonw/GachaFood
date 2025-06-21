@@ -31,8 +31,12 @@ def index():
         if data_loader is not None:
             stats = data_loader.get_summary_stats()
         
-        if clustering_model is not None:
-            clusters = clustering_model.get_cluster_info()
+        if clustering_model is not None and data_loader is not None:
+            data_with_clusters = data_loader.get_filtered_data()
+            if 'cluster' in data_with_clusters.columns:
+                clusters = clustering_model.get_cluster_info(data_with_clusters)
+            else:
+                clusters = None
         
         return render_template('index.html', stats=stats, clusters=clusters)
     
@@ -51,8 +55,11 @@ def restaurants():
     """Halaman daftar restoran dengan pagination"""
     try:
         if data_loader is None:
+            logger.error("Data loader not initialized in restaurants route")
             flash('Data tidak tersedia', 'error')
             return redirect(url_for('web.index'))
+        
+        logger.info("Processing restaurants page request")
         
         # Get pagination parameters
         page = request.args.get('page', 1, type=int)
@@ -68,30 +75,57 @@ def restaurants():
         # Get filtered data
         data = data_loader.get_filtered_data()
         
+        if data.empty:
+            logger.warning("No data available from data loader")
+            flash('Data restoran tidak tersedia saat ini', 'warning')
+            return redirect(url_for('web.index'))
+        
+        logger.info(f"Processing {len(data)} restaurants with filters")
+        
         # Apply filters
-        if max_harga is not None:
+        if max_harga is not None and 'harga' in data.columns:
             data = data[data['harga'] <= max_harga]
-        if max_jarak is not None:
+        if max_jarak is not None and 'jarak' in data.columns:
             data = data[data['jarak'] <= max_jarak]
-        if min_rating is not None:
+        if min_rating is not None and 'rating' in data.columns:
             data = data[data['rating'] >= min_rating]
-        if tipe_tempat:
+        if tipe_tempat and 'tipe_tempat' in data.columns:
             data = data[data['tipe_tempat'].str.contains(tipe_tempat, case=False, na=False)]
-        if cluster_id is not None:
+        if cluster_id is not None and 'cluster' in data.columns:
             data = data[data['cluster'] == cluster_id]
         
-        # Sort by rating
-        data = data.sort_values(['rating', 'jarak'], ascending=[False, True])
+        # Sort by rating and distance if columns exist
+        sort_columns = []
+        sort_ascending = []
+        
+        if 'rating' in data.columns:
+            sort_columns.append('rating')
+            sort_ascending.append(False)
+        if 'jarak' in data.columns:
+            sort_columns.append('jarak')
+            sort_ascending.append(True)
+            
+        if sort_columns:
+            data = data.sort_values(sort_columns, ascending=sort_ascending)
+        
+        logger.info(f"After filtering: {len(data)} restaurants remaining")
         
         # Calculate pagination
         total = len(data)
-        start = (page - 1) * per_page
-        end = start + per_page
-        restaurants = data.iloc[start:end]
+        start_idx = (page - 1) * per_page
+        end_idx = start_idx + per_page
+        
+        # Convert to list of dictionaries for template
+        restaurants_page = data.iloc[start_idx:end_idx]
+        restaurants = restaurants_page.to_dict('records')
+        
+        # Add index for template compatibility
+        for i, restaurant in enumerate(restaurants):
+            restaurant['index'] = start_idx + i
         
         # Calculate pagination info
         has_prev = page > 1
-        has_next = end < total
+        has_next = end_idx < total
         prev_num = page - 1 if has_prev else None
         next_num = page + 1 if has_next else None
         
@@ -108,10 +142,20 @@ def restaurants():
         
         # Get available filter options
         all_data = data_loader.get_filtered_data()
-        filter_options = {
-            'tipe_tempat': sorted(all_data['tipe_tempat'].unique()),
-            'clusters': sorted(all_data['cluster'].unique()) if 'cluster' in all_data.columns else []
-        }
+        
+        if all_data.empty:
+            logger.warning("No data available for filter options")
+            filter_options = {
+                'tipe_tempat': [],
+                'clusters': []
+            }
+        else:
+            filter_options = {
+                'tipe_tempat': sorted(all_data['tipe_tempat'].unique()) if 'tipe_tempat' in all_data.columns else [],
+                'clusters': sorted(all_data['cluster'].unique()) if 'cluster' in all_data.columns else []
+            }
+        
+        logger.info(f"Rendering restaurants page with {len(restaurants)} restaurants")
         
         return render_template(
             'restaurants.html',
@@ -128,7 +172,7 @@ def restaurants():
         )
     
     except Exception as e:
-        logger.error(f"Error in restaurants route: {str(e)}")
+        logger.error(f"Error in restaurants route: {str(e)}", exc_info=True)
         flash('Terjadi kesalahan saat memuat daftar restoran', 'error')
         return redirect(url_for('web.index'))
 
@@ -157,12 +201,14 @@ def restaurant_detail(restaurant_id):
         
         # Get cluster information if available
         cluster_info = None
-        if clustering_model is not None and 'cluster' in restaurant:
-            cluster_data = clustering_model.get_cluster_info()
-            cluster_info = next(
-                (c for c in cluster_data['clusters'] if c['cluster_id'] == restaurant['cluster']),
-                None
-            )
+        if clustering_model is not None and data_loader is not None and 'cluster' in restaurant:
+            data_with_clusters = data_loader.get_filtered_data()
+            if 'cluster' in data_with_clusters.columns:
+                cluster_data = clustering_model.get_cluster_info(data_with_clusters)
+                cluster_info = next(
+                    (c for c in cluster_data if c['cluster_id'] == restaurant['cluster']),
+                    None
+                )
         
         return render_template(
             'restaurant_detail.html',
@@ -181,11 +227,16 @@ def restaurant_detail(restaurant_id):
 def clusters():
     """Halaman informasi cluster"""
     try:
-        if clustering_model is None:
-            flash('Model clustering tidak tersedia', 'error')
+        if clustering_model is None or data_loader is None:
+            flash('Model clustering atau data loader tidak tersedia', 'error')
             return redirect(url_for('web.index'))
         
-        cluster_info = clustering_model.get_cluster_info()
+        data_with_clusters = data_loader.get_filtered_data()
+        if 'cluster' not in data_with_clusters.columns:
+            flash('Data cluster tidak tersedia', 'error')
+            return redirect(url_for('web.index'))
+            
+        cluster_info = clustering_model.get_cluster_info(data_with_clusters)
         
         return render_template('clusters.html', cluster_info=cluster_info)
     

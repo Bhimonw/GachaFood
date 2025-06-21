@@ -326,6 +326,42 @@ class RestaurantDataLoader:
         
         return filtered_df
     
+    def get_summary_stats(self) -> Dict[str, Any]:
+        """Mendapatkan statistik ringkasan data yang sudah diproses"""
+        if self.processed_data is None:
+            return {
+                'total_restaurants': 0,
+                'avg_price': 0,
+                'avg_rating': 0,
+                'avg_distance': 0
+            }
+        
+        return {
+            'total_restaurants': len(self.processed_data),
+            'avg_price': float(self.processed_data['harga'].mean()) if 'harga' in self.processed_data.columns else 0,
+            'avg_rating': float(self.processed_data['rating'].mean()) if 'rating' in self.processed_data.columns else 0,
+            'avg_distance': float(self.processed_data['jarak'].mean()) if 'jarak' in self.processed_data.columns else 0
+        }
+    
+    def set_clustered_data(self, clustered_data: pd.DataFrame) -> None:
+        """Set data yang sudah di-cluster"""
+        self.clustered_data = clustered_data
+    
+    def get_filtered_data(self, filters: Optional[Dict[str, Any]] = None) -> pd.DataFrame:
+        """Mendapatkan data yang sudah difilter"""
+        # Prioritas: gunakan clustered_data jika tersedia, jika tidak gunakan processed_data
+        data_source = getattr(self, 'clustered_data', None)
+        if data_source is None:
+            data_source = self.processed_data
+            
+        if data_source is None:
+            return pd.DataFrame()
+        
+        if filters is None:
+            return data_source.copy()
+        
+        return self.filter_data(data_source, filters)
+    
     def export_data(self, df: pd.DataFrame, output_path: str, format: str = 'csv') -> None:
         """Export data ke file"""
         try:

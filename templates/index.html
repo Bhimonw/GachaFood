@@ -32,15 +32,13 @@
         .gradient-card {
             background: linear-gradient(135deg, #4facfe, #00f2fe);
         }
-        }
         .hover-lift:hover {
             transform: translateY(-2px);
         }
         .shadow-primary:hover {
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
-
-
+        .font-bold {
             font-weight: bold;
         }
 
@@ -145,15 +143,15 @@
                     </div>
                     <div class="gradient-card text-white p-5 rounded-xl text-center">
                         <h4 class="text-sm opacity-90 mb-1">Harga Rata-rata</h4>
-                        <div class="text-3xl font-bold">Rp ${Math.round(data.price_range.avg).toLocaleString()}</div>
+                        <div class="text-3xl font-bold">Rp ${Math.round(data.avg_price).toLocaleString()}</div>
                     </div>
                     <div class="gradient-card text-white p-5 rounded-xl text-center">
                         <h4 class="text-sm opacity-90 mb-1">Rating Rata-rata</h4>
-                        <div class="text-3xl font-bold">${data.rating_range.avg.toFixed(1)}</div>
+                        <div class="text-3xl font-bold">${data.avg_rating.toFixed(1)}</div>
                     </div>
                     <div class="gradient-card text-white p-5 rounded-xl text-center">
                         <h4 class="text-sm opacity-90 mb-1">Jarak Rata-rata</h4>
-                        <div class="text-3xl font-bold">${data.distance_range.avg.toFixed(1)} km</div>
+                        <div class="text-3xl font-bold">${data.avg_distance.toFixed(1)} km</div>
                     </div>
                 `;
             } catch (error) {
@@ -168,7 +166,8 @@
                 const data = await response.json();
                 
                 const clusterSelect = document.getElementById('clusterId');
-                data.clusters.forEach(cluster => {
+                // data is already an array of clusters
+                data.forEach(cluster => {
                     const option = document.createElement('option');
                     option.value = cluster.cluster_id;
                     option.textContent = `Cluster ${cluster.cluster_id} (${cluster.count} tempat)`;

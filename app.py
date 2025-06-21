@@ -47,6 +47,9 @@ def create_app(config_name=None):
         logger.info("Initializing recommendation engine...")
         recommendation_engine.load_data(clustered_data)
         
+        # Set clustered data to data loader for API access
+        data_loader.set_clustered_data(clustered_data)
+        
         logger.info("Application components initialized successfully")
         
     except Exception as e:

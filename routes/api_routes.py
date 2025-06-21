@@ -26,28 +26,54 @@ def get_stats():
     """Endpoint untuk mendapatkan statistik dataset"""
     try:
         if data_loader is None:
+            logger.error("Data loader not initialized")
             return jsonify({'error': 'Data loader not initialized'}), 500
         
+        logger.info("Generating dataset statistics")
         stats = data_loader.get_summary_stats()
+        
+        if not stats:
+            logger.warning("No statistics available")
+            return jsonify({'error': 'No statistics available'}), 500
+            
         return jsonify(stats)
     
     except Exception as e:
-        logger.error(f"Error in get_stats: {str(e)}")
-        return jsonify({'error': 'Internal server error'}), 500
+        logger.error(f"Error in get_stats: {str(e)}", exc_info=True)
+        return jsonify({'error': 'Internal server error', 'details': str(e)}), 500
 
 @api_bp.route('/clusters', methods=['GET'])
 def get_clusters():
     """Endpoint untuk mendapatkan informasi cluster"""
     try:
+        # Check dependencies
         if clustering_model is None:
+            logger.error("Clustering model not initialized")
             return jsonify({'error': 'Clustering model not initialized'}), 500
+            
+        if data_loader is None:
+            logger.error("Data loader not initialized")
+            return jsonify({'error': 'Data loader not initialized'}), 500
         
-        cluster_info = clustering_model.get_cluster_info()
+        # Get data with clusters
+        data_with_clusters = data_loader.get_filtered_data()
+        
+        if data_with_clusters.empty:
+            logger.error("No data available from data loader")
+            return jsonify({'error': 'No data available'}), 500
+            
+        if 'cluster' not in data_with_clusters.columns:
+            logger.error(f"Cluster column not found. Available columns: {list(data_with_clusters.columns)}")
+            return jsonify({'error': 'Cluster data not available', 'available_columns': list(data_with_clusters.columns)}), 500
+            
+        logger.info(f"Processing cluster info for {len(data_with_clusters)} records")
+        cluster_info = clustering_model.get_cluster_info(data_with_clusters)
+        
         return jsonify(cluster_info)
     
     except Exception as e:
-        logger.error(f"Error in get_clusters: {str(e)}")
-        return jsonify({'error': 'Internal server error'}), 500
+        logger.error(f"Error in get_clusters: {str(e)}", exc_info=True)
+        return jsonify({'error': 'Internal server error', 'details': str(e)}), 500
 
 @api_bp.route('/recommendations', methods=['GET'])
 def get_recommendations():
