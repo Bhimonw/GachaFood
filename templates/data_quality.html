@@ -4,95 +4,93 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Laporan Kualitas Data - GachaFood</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#667eea',
+                        secondary: '#764ba2',
+                        accent: '#ff6b6b',
+                        orange: '#ffa726'
+                    }
+                }
+            }
+        }
+    </script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        .quality-score {
-            font-size: 3rem;
-            font-weight: bold;
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
-        .score-excellent { color: #28a745; }
-        .score-good { color: #17a2b8; }
-        .score-fair { color: #ffc107; }
-        .score-poor { color: #dc3545; }
-        .issue-card {
-            border-left: 4px solid #dc3545;
-        }
-        .recommendation-card {
-            border-left: 4px solid #28a745;
-        }
-        .loading {
-            display: none;
+        .gradient-header {
+            background: linear-gradient(135deg, #ff6b6b, #ffa726);
         }
     </style>
 </head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            <a class="navbar-brand" href="/">
-                <i class="fas fa-utensils me-2"></i>GachaFood
-            </a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="/">Beranda</a>
-                <a class="nav-link active" href="/data-quality">Kualitas Data</a>
+<body class="bg-gray-50 min-h-screen">
+    <nav class="gradient-bg text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <a href="/" class="flex items-center text-white no-underline text-xl font-bold hover:text-gray-200 transition-colors">
+                    <i class="fas fa-utensils mr-2"></i>GachaFood
+                </a>
+                <div class="flex space-x-6">
+                    <a href="/" class="text-white hover:text-gray-200 transition-colors no-underline">Beranda</a>
+                    <a href="/data-quality" class="text-white font-semibold border-b-2 border-white pb-1">Kualitas Data</a>
+                </div>
             </div>
         </div>
     </nav>
 
-    <div class="container mt-4">
-        <div class="row">
-            <div class="col-12">
-                <h1 class="mb-4">
-                    <i class="fas fa-chart-line me-2"></i>
-                    Laporan Kualitas Data
-                </h1>
-            </div>
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <div class="mb-8">
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">
+                <i class="fas fa-chart-line mr-3 text-primary"></i>
+                Laporan Kualitas Data
+            </h1>
         </div>
 
         <!-- Loading Indicator -->
-        <div class="loading text-center">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Memuat...</span>
-            </div>
-            <p class="mt-2">Menganalisis kualitas data...</p>
+        <div class="loading text-center py-10 hidden">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <p class="mt-4 text-gray-600">Menganalisis kualitas data...</p>
         </div>
 
         <!-- Data Overview Card -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card bg-info text-white">
-                    <div class="card-body">
-                        <h5 class="card-title">
-                            <i class="fas fa-database me-2"></i>
-                            Ringkasan Dataset
-                        </h5>
-                        <div class="row">
-                            <div class="col-md-3 text-center">
-                                <h3>100</h3>
-                                <p class="mb-0">Total Data Restoran</p>
-                            </div>
-                            <div class="col-md-3 text-center">
-                                <h3>6</h3>
-                                <p class="mb-0">Kolom Data</p>
-                            </div>
-                            <div class="col-md-3 text-center">
-                                <h3 id="duplicate-count">~15</h3>
-                                <p class="mb-0">Duplikat Terdeteksi</p>
-                            </div>
-                            <div class="col-md-3 text-center">
-                                <h3>CSV</h3>
-                                <p class="mb-0">Format File</p>
-                            </div>
-                        </div>
-                        <hr class="my-3">
-                        <div class="row">
-                            <div class="col-12">
-                                <h6>Duplikat yang Ditemukan Secara Manual:</h6>
-                                <ul class="mb-0">
-                                    <li><strong>Warung Keprekan Bu Yayu</strong> - 3 entri dengan harga berbeda (Rp 12.000, Rp 25.000, Rp 13.000)</li>
-                                    <li><strong>Ayam Syntall</strong> - 4 entri dengan variasi nama ("Ayam syntall", "ayam sintal", "Ayam Syntall")</li>
-                                    <li><strong>Mie Ayam & Bakso Alam Subur</strong> - 3 entri dengan nama serupa</li>
-                                    <li><strong>Depot Den Bagus Masto</strong> - 2 entri dengan tipe tempat berbeda</li>
+        <div class="mb-8">
+            <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl shadow-lg p-6">
+                <h5 class="text-xl font-semibold mb-6">
+                    <i class="fas fa-database mr-2"></i>
+                    Ringkasan Dataset
+                </h5>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                    <div class="text-center">
+                        <h3 class="text-3xl font-bold mb-2">100</h3>
+                        <p class="text-sm opacity-90">Total Data Restoran</p>
+                    </div>
+                    <div class="text-center">
+                        <h3 class="text-3xl font-bold mb-2">6</h3>
+                        <p class="text-sm opacity-90">Kolom Data</p>
+                    </div>
+                    <div class="text-center">
+                        <h3 class="text-3xl font-bold mb-2" id="duplicate-count">~15</h3>
+                        <p class="text-sm opacity-90">Duplikat Terdeteksi</p>
+                    </div>
+                    <div class="text-center">
+                        <h3 class="text-3xl font-bold mb-2">CSV</h3>
+                        <p class="text-sm opacity-90">Format File</p>
+                    </div>
+                </div>
+                <hr class="border-white border-opacity-30 my-4">
+                <div>
+                    <h6 class="text-lg font-semibold mb-3">Duplikat yang Ditemukan Secara Manual:</h6>
+                    <ul class="space-y-2 text-sm">
+                        <li><strong>Warung Keprekan Bu Yayu</strong> - 3 entri dengan harga berbeda (Rp 12.000, Rp 25.000, Rp 13.000)</li>
+                        <li><strong>Ayam Syntall</strong> - 4 entri dengan variasi nama ("Ayam syntall", "ayam sintal", "Ayam Syntall")</li>
+                        <li><strong>Mie Ayam & Bakso Alam Subur</strong> - 3 entri dengan nama serupa</li>
+                        <li><strong>Depot Den Bagus Masto</strong> - 2 entri dengan tipe tempat berbeda</li>
                                     <li><strong>Luweh</strong> - 2 entri dengan harga berbeda (Rp 25.000, Rp 26.250)</li>
                                 </ul>
                             </div>
@@ -103,93 +101,76 @@
         </div>
 
         <!-- Quality Score Card -->
-        <div class="row mb-4" id="quality-overview" style="display: none;">
-            <div class="col-md-4">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <h5 class="card-title">Skor Kualitas Data</h5>
-                        <div class="quality-score" id="quality-score">--</div>
-                        <p class="card-text" id="quality-status">Menganalisis...</p>
-                    </div>
-                </div>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8" id="quality-overview" style="display: none;">
+            <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+                <h5 class="text-lg font-semibold text-gray-800 mb-4">Skor Kualitas Data</h5>
+                <div class="text-5xl font-bold mb-2" id="quality-score">--</div>
+                <p class="text-gray-600" id="quality-status">Menganalisis...</p>
             </div>
-            <div class="col-md-8">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Statistik Data</h5>
-                        <div class="row" id="data-stats">
-                            <!-- Statistics will be populated here -->
-                        </div>
-                    </div>
+            <div class="lg:col-span-2 bg-white rounded-xl shadow-lg p-6">
+                <h5 class="text-lg font-semibold text-gray-800 mb-4">Statistik Data</h5>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="data-stats">
+                    <!-- Statistics will be populated here -->
                 </div>
             </div>
         </div>
 
         <!-- Issues and Recommendations -->
-        <div class="row" id="issues-recommendations" style="display: none;">
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header bg-danger text-white">
-                        <h5 class="mb-0">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            Masalah Ditemukan
-                        </h5>
-                    </div>
-                    <div class="card-body" id="issues-list">
-                        <!-- Issues will be populated here -->
-                    </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" id="issues-recommendations" style="display: none;">
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div class="bg-red-500 text-white p-4">
+                    <h5 class="text-lg font-semibold">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        Masalah Ditemukan
+                    </h5>
+                </div>
+                <div class="p-6" id="issues-list">
+                    <!-- Issues will be populated here -->
                 </div>
             </div>
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header bg-success text-white">
-                        <h5 class="mb-0">
-                            <i class="fas fa-lightbulb me-2"></i>
-                            Rekomendasi
-                        </h5>
-                    </div>
-                    <div class="card-body" id="recommendations-list">
-                        <!-- Recommendations will be populated here -->
-                    </div>
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div class="bg-green-500 text-white p-4">
+                    <h5 class="text-lg font-semibold">
+                        <i class="fas fa-lightbulb mr-2"></i>
+                        Rekomendasi
+                    </h5>
+                </div>
+                <div class="p-6" id="recommendations-list">
+                    <!-- Recommendations will be populated here -->
                 </div>
             </div>
         </div>
 
         <!-- Duplicate Report -->
-        <div class="row mt-4" id="duplicate-report" style="display: none;">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header bg-warning text-dark">
-                        <h5 class="mb-0">
-                            <i class="fas fa-copy me-2"></i>
-                            Laporan Duplikat
-                        </h5>
-                    </div>
-                    <div class="card-body" id="duplicate-content">
-                        <!-- Duplicate report will be populated here -->
-                    </div>
+        <div class="mt-8" id="duplicate-report" style="display: none;">
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div class="bg-yellow-500 text-gray-800 p-4">
+                    <h5 class="text-lg font-semibold">
+                        <i class="fas fa-copy mr-2"></i>
+                        Laporan Duplikat
+                    </h5>
+                </div>
+                <div class="p-6" id="duplicate-content">
+                    <!-- Duplicate report will be populated here -->
                 </div>
             </div>
         </div>
 
         <!-- Refresh Button -->
-        <div class="row mt-4">
-            <div class="col-12 text-center">
-                <button class="btn btn-primary" onclick="loadDataQuality()">
-                    <i class="fas fa-sync-alt me-2"></i>
-                    Refresh Data
-                </button>
-            </div>
+        <div class="mt-8 text-center">
+            <button class="bg-gradient-to-r from-primary to-secondary text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105" onclick="loadDataQuality()">
+                <i class="fas fa-sync-alt mr-2"></i>
+                Refresh Data
+            </button>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         function getQualityScoreClass(score) {
-            if (score >= 90) return 'score-excellent';
-            if (score >= 70) return 'score-good';
-            if (score >= 50) return 'score-fair';
-            return 'score-poor';
+            if (score >= 90) return 'text-green-500';
+            if (score >= 70) return 'text-blue-500';
+            if (score >= 50) return 'text-yellow-500';
+            return 'text-red-500';
         }
 
         function getQualityStatus(score) {
@@ -201,7 +182,7 @@
 
         async function loadDataQuality() {
             // Show loading
-            document.querySelector('.loading').style.display = 'block';
+            document.querySelector('.loading').classList.remove('hidden');
             document.getElementById('quality-overview').style.display = 'none';
             document.getElementById('issues-recommendations').style.display = 'none';
             document.getElementById('duplicate-report').style.display = 'none';
@@ -219,38 +200,38 @@
                     const statusElement = document.getElementById('quality-status');
                     
                     scoreElement.textContent = Math.round(report.data_quality_score);
-                    scoreElement.className = 'quality-score ' + getQualityScoreClass(report.data_quality_score);
+                    scoreElement.className = 'text-5xl font-bold mb-2 ' + getQualityScoreClass(report.data_quality_score);
                     statusElement.textContent = getQualityStatus(report.data_quality_score);
 
                     // Update statistics
                     const statsContainer = document.getElementById('data-stats');
                     statsContainer.innerHTML = `
-                        <div class="col-md-3 text-center">
-                            <h6>Total Baris</h6>
-                            <p class="h4">${report.statistics.total_rows.toLocaleString()}</p>
+                        <div class="text-center p-4 bg-gray-50 rounded-lg">
+                            <h6 class="text-sm font-semibold text-gray-600 mb-2">Total Baris</h6>
+                            <p class="text-2xl font-bold text-gray-800">${report.statistics.total_rows.toLocaleString()}</p>
                         </div>
-                        <div class="col-md-3 text-center">
-                            <h6>Total Kolom</h6>
-                            <p class="h4">${report.statistics.total_columns}</p>
+                        <div class="text-center p-4 bg-gray-50 rounded-lg">
+                            <h6 class="text-sm font-semibold text-gray-600 mb-2">Total Kolom</h6>
+                            <p class="text-2xl font-bold text-gray-800">${report.statistics.total_columns}</p>
                         </div>
-                        <div class="col-md-3 text-center">
-                            <h6>Duplikat Potensial</h6>
-                            <p class="h4">${report.statistics.potential_duplicates}</p>
+                        <div class="text-center p-4 bg-gray-50 rounded-lg">
+                            <h6 class="text-sm font-semibold text-gray-600 mb-2">Duplikat Potensial</h6>
+                            <p class="text-2xl font-bold text-gray-800">${report.statistics.potential_duplicates}</p>
                         </div>
-                        <div class="col-md-3 text-center">
-                            <h6>Masalah</h6>
-                            <p class="h4">${report.issues.length}</p>
+                        <div class="text-center p-4 bg-gray-50 rounded-lg">
+                            <h6 class="text-sm font-semibold text-gray-600 mb-2">Masalah</h6>
+                            <p class="text-2xl font-bold text-gray-800">${report.issues.length}</p>
                         </div>
                     `;
 
                     // Update issues
                     const issuesContainer = document.getElementById('issues-list');
                     if (report.issues.length === 0) {
-                        issuesContainer.innerHTML = '<p class="text-success"><i class="fas fa-check me-2"></i>Tidak ada masalah ditemukan!</p>';
+                        issuesContainer.innerHTML = '<p class="text-green-600 flex items-center"><i class="fas fa-check mr-2"></i>Tidak ada masalah ditemukan!</p>';
                     } else {
                         issuesContainer.innerHTML = report.issues.map(issue => 
-                            `<div class="alert alert-danger issue-card mb-2">
-                                <i class="fas fa-exclamation-circle me-2"></i>${issue}
+                            `<div class="bg-red-50 border-l-4 border-red-500 p-4 mb-3 rounded">
+                                <i class="fas fa-exclamation-circle mr-2 text-red-500"></i>${issue}
                             </div>`
                         ).join('');
                     }
@@ -258,11 +239,11 @@
                     // Update recommendations
                     const recommendationsContainer = document.getElementById('recommendations-list');
                     if (report.recommendations.length === 0) {
-                        recommendationsContainer.innerHTML = '<p class="text-muted">Tidak ada rekomendasi saat ini.</p>';
+                        recommendationsContainer.innerHTML = '<p class="text-gray-500">Tidak ada rekomendasi saat ini.</p>';
                     } else {
                         recommendationsContainer.innerHTML = report.recommendations.map(rec => 
-                            `<div class="alert alert-success recommendation-card mb-2">
-                                <i class="fas fa-lightbulb me-2"></i>${rec}
+                            `<div class="bg-green-50 border-l-4 border-green-500 p-4 mb-3 rounded">
+                                <i class="fas fa-lightbulb mr-2 text-green-500"></i>${rec}
                             </div>`
                         ).join('');
                     }
@@ -285,30 +266,32 @@
                     const duplicateContainer = document.getElementById('duplicate-content');
                     
                     duplicateContainer.innerHTML = `
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h6>Total Duplikat Potensial</h6>
-                                <p class="h4 text-warning">${duplicateReport.total_potential_duplicates}</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div class="text-center p-4 bg-yellow-50 rounded-lg">
+                                <h6 class="text-sm font-semibold text-gray-600 mb-2">Total Duplikat Potensial</h6>
+                                <p class="text-2xl font-bold text-yellow-600">${duplicateReport.total_potential_duplicates}</p>
                             </div>
-                            <div class="col-md-6">
-                                <h6>Threshold Similaritas</h6>
-                                <p class="h4">${(duplicateReport.similarity_threshold * 100).toFixed(0)}%</p>
+                            <div class="text-center p-4 bg-blue-50 rounded-lg">
+                                <h6 class="text-sm font-semibold text-gray-600 mb-2">Threshold Similaritas</h6>
+                                <p class="text-2xl font-bold text-blue-600">${(duplicateReport.similarity_threshold * 100).toFixed(0)}%</p>
                             </div>
                         </div>
-                        <div class="mt-3">
-                            <h6>Detail Duplikat:</h6>
+                        <div class="mb-4">
+                            <h6 class="text-lg font-semibold text-gray-800 mb-3">Detail Duplikat:</h6>
                             ${duplicateReport.duplicate_pairs.length === 0 ? 
-                                '<p class="text-success"><i class="fas fa-check me-2"></i>Tidak ada duplikat ditemukan!</p>' :
+                                '<p class="text-green-600 flex items-center"><i class="fas fa-check mr-2"></i>Tidak ada duplikat ditemukan!</p>' :
                                 duplicateReport.duplicate_pairs.slice(0, 10).map(pair => 
-                                    `<div class="alert alert-warning mb-2">
-                                        <strong>${pair.restaurant1.nama_tempat}</strong> (${pair.restaurant1.lokasi}) 
-                                        <i class="fas fa-arrows-alt-h mx-2"></i>
-                                        <strong>${pair.restaurant2.nama_tempat}</strong> (${pair.restaurant2.lokasi})
-                                        <br><small>Similaritas: ${(pair.similarity_score * 100).toFixed(1)}%</small>
+                                    `<div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-3">
+                                        <div class="flex items-center justify-between">
+                                            <span><strong class="text-gray-800">${pair.restaurant1.nama_tempat}</strong> <span class="text-gray-600">(${pair.restaurant1.lokasi})</span></span>
+                                            <i class="fas fa-arrows-alt-h text-yellow-600 mx-3"></i>
+                                            <span><strong class="text-gray-800">${pair.restaurant2.nama_tempat}</strong> <span class="text-gray-600">(${pair.restaurant2.lokasi})</span></span>
+                                        </div>
+                                        <div class="mt-2 text-sm text-yellow-700">Similaritas: ${(pair.similarity_score * 100).toFixed(1)}%</div>
                                     </div>`
                                 ).join('') + 
                                 (duplicateReport.duplicate_pairs.length > 10 ? 
-                                    `<p class="text-muted">... dan ${duplicateReport.duplicate_pairs.length - 10} duplikat lainnya</p>` : '')
+                                    `<p class="text-gray-500 text-sm mt-3">... dan ${duplicateReport.duplicate_pairs.length - 10} duplikat lainnya</p>` : '')
                             }
                         </div>
                     `;
@@ -321,7 +304,7 @@
                 alert('Gagal memuat laporan kualitas data. Silakan coba lagi.');
             } finally {
                 // Hide loading
-                document.querySelector('.loading').style.display = 'none';
+                document.querySelector('.loading').classList.add('hidden');
             }
         }
 
