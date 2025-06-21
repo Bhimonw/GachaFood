@@ -81,15 +81,37 @@ Mendapatkan informasi semua cluster
   "clusters": [
     {
       "cluster_id": 0,
-      "count": 15,
-      "avg_harga": 18500.0,
-      "avg_rating": 4.2,
-      "avg_jarak": 1.3,
+      "cluster_name": "Ekonomis",
+      "count": 28,
+      "avg_harga": 15000.0,
+      "avg_rating": 4.1,
+      "avg_jarak": 1.2,
       "tipe_tempat_common": "Warung"
+    },
+    {
+      "cluster_id": 1,
+      "cluster_name": "Menengah",
+      "count": 32,
+      "avg_harga": 22000.0,
+      "avg_rating": 4.3,
+      "avg_jarak": 1.5,
+      "tipe_tempat_common": "Indoor"
+    },
+    {
+      "cluster_id": 2,
+      "cluster_name": "Premium",
+      "count": 22,
+      "avg_harga": 35000.0,
+      "avg_rating": 4.6,
+      "avg_jarak": 2.1,
+      "tipe_tempat_common": "Cafe"
     }
   ],
-  "silhouette_score": 0.65,
-  "total_restaurants": 95
+  "silhouette_score": 0.271,
+  "calinski_harabasz_score": 27.1,
+  "davies_bouldin_score": 1.365,
+  "cluster_balance": 0.553,
+  "total_restaurants": 82
 }
 ```
 
@@ -102,16 +124,31 @@ Mendapatkan detail restoran dan rekomendasi serupa
 ## 🤖 Machine Learning
 
 ### Algoritma Clustering
-- **K-Means Clustering** dengan 5 cluster
-- **Features**: Harga, Rating, Jarak, Tipe Tempat (encoded)
-- **Preprocessing**: StandardScaler untuk normalisasi data
-- **Evaluasi**: Silhouette Score untuk mengukur kualitas clustering
+- **K-Means Clustering** dengan 3 cluster yang dioptimalkan
+- **Features**: Harga (50%), Rating (30%), Jarak (15%), Tipe Tempat (5%)
+- **Preprocessing**: StandardScaler untuk normalisasi data optimal
+- **Evaluasi**: Multiple metrics (Silhouette, Calinski-Harabasz, Davies-Bouldin)
+
+### Kategori Cluster
+1. **Ekonomis** - Tempat makan dengan harga terjangkau
+2. **Menengah** - Gabungan kategori sedang dan menengah untuk fleksibilitas
+3. **Premium** - Tempat makan dengan harga tinggi dan kualitas premium
 
 ### Proses Clustering
-1. **Data Preprocessing**: Cleaning data dan encoding kategorikal
-2. **Feature Scaling**: Normalisasi menggunakan StandardScaler
-3. **K-Means**: Clustering dengan 5 cluster
-4. **Evaluasi**: Perhitungan Silhouette Score
+1. **Data Preprocessing**: Advanced cleaning dengan duplicate detection
+2. **Feature Weighting**: Optimized weights untuk separasi cluster yang lebih baik
+3. **Feature Scaling**: StandardScaler dengan parameter yang dioptimalkan
+4. **K-Means**: Clustering dengan parameter advanced (n_init=100, max_iter=2000)
+5. **Evaluasi**: Comprehensive evaluation dengan multiple metrics
+
+### Optimasi Clustering
+- **Advanced K-Means Parameters**: 
+  - n_init: 100 (multiple initializations)
+  - max_iter: 2000 (better convergence)
+  - algorithm: 'elkan' (efficient for small datasets)
+  - tol: 1e-10 (strict tolerance)
+- **Feature Engineering**: Weighted features untuk hasil clustering yang lebih baik
+- **Data Quality**: Advanced outlier detection dan data cleaning
 
 ## 🎯 Cara Menggunakan
 
@@ -193,14 +230,30 @@ GachaFood/
 
 ## 🛠️ Teknologi yang Digunakan
 
-- **Backend**: Flask (Python)
-- **Architecture**: Modular design with blueprints and factory pattern
-- **Machine Learning**: Scikit-learn (K-Means, StandardScaler)
-- **Data Processing**: Pandas, NumPy
-- **Frontend**: HTML5, CSS3, JavaScript (Vanilla)
-- **Styling**: CSS Grid, Flexbox, Gradient
+### Backend & Architecture
+- **Framework**: Flask (Python) dengan modular blueprint design
+- **Architecture**: Clean architecture dengan separation of concerns
 - **Configuration**: Environment-based configuration management
-- **Logging**: Structured logging with file rotation
+- **Logging**: Structured logging dengan file rotation
+
+### Machine Learning & Data
+- **ML Framework**: Scikit-learn dengan optimized parameters
+- **Clustering**: Advanced K-Means dengan multiple evaluation metrics
+- **Data Processing**: Pandas, NumPy untuk data manipulation
+- **Feature Engineering**: Weighted features dan advanced preprocessing
+- **Data Quality**: Duplicate detection dan outlier handling
+
+### Frontend & UI
+- **Frontend**: HTML5, CSS3, JavaScript (Vanilla)
+- **Styling**: Modern CSS dengan Grid, Flexbox, dan Gradient
+- **Responsive**: Mobile-first responsive design
+- **UX**: Interactive components dengan real-time feedback
+
+### Development & Quality
+- **Code Quality**: Modular design dengan clear separation
+- **Error Handling**: Comprehensive error handling dan validation
+- **Performance**: Optimized algorithms dan efficient data processing
+- **Maintainability**: Clean code principles dan documentation
 
 ## 🏗️ Architecture Benefits
 
@@ -222,15 +275,30 @@ GachaFood/
 
 ## 📈 Pengembangan Selanjutnya
 
-- [ ] Tambah algoritma clustering lain (DBSCAN, Hierarchical)
-- [ ] Implementasi sistem rating pengguna
-- [ ] Integrasi dengan Google Maps API
-- [ ] Fitur bookmark tempat makan favorit
-- [ ] Sistem rekomendasi berbasis collaborative filtering
-- [ ] Mobile app dengan React Native
-- [ ] Dashboard admin untuk manajemen data
-- [ ] Testing: Comprehensive unit and integration tests
-- [ ] Deployment: Docker containerization and CI/CD pipeline
+### Immediate Improvements
+- [ ] **Clustering Enhancement**: Implementasi algoritma clustering alternatif (DBSCAN, Gaussian Mixture)
+- [ ] **Feature Engineering**: Tambah fitur baru untuk meningkatkan Silhouette Score
+- [ ] **Data Augmentation**: Ekspansi dataset untuk clustering yang lebih robust
+
+### Feature Enhancements
+- [ ] **User System**: Implementasi sistem rating dan review pengguna
+- [ ] **Geolocation**: Integrasi dengan Google Maps API untuk lokasi real-time
+- [ ] **Personalization**: Sistem rekomendasi berbasis collaborative filtering
+- [ ] **Favorites**: Fitur bookmark tempat makan favorit
+- [ ] **Social Features**: Sharing dan review antar pengguna
+
+### Technical Improvements
+- [ ] **Mobile App**: React Native atau Flutter mobile application
+- [ ] **Admin Dashboard**: Interface untuk manajemen data dan monitoring
+- [ ] **API Enhancement**: GraphQL API untuk query yang lebih fleksibel
+- [ ] **Real-time Updates**: WebSocket untuk update real-time
+
+### Infrastructure & Quality
+- [ ] **Testing**: Comprehensive unit, integration, dan end-to-end tests
+- [ ] **Deployment**: Docker containerization dan CI/CD pipeline
+- [ ] **Monitoring**: Application performance monitoring dan logging
+- [ ] **Security**: Authentication, authorization, dan data protection
+- [ ] **Scalability**: Database optimization dan caching strategies
 
 ## 🤝 Kontribusi
 
