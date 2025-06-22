@@ -16,7 +16,8 @@ Aplikasi web berbasis Flask yang menggunakan machine learning clustering (K-Mean
 ### 1. Persiapan Environment
 
 ```bash
-# Clone atau download project
+# Clone project dari GitHub
+git clone https://github.com/Bhimonw/GachaFood.git
 cd GachaFood
 
 # Buat virtual environment (opsional tapi direkomendasikan)
